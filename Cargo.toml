@@ -1,0 +1,17 @@
+[package]
+name = "cstr_core"
+version = "0.1.0"
+authors = ["Amanieu d'Antras <amanieu@gmail.com>"]
+description = "Implementation of CStr and CString for no_std environments."
+documentation = "https://docs.rs/cstr_core/"
+license = "Apache-2.0/MIT"
+repository = "https://github.com/Amanieu/cstr_core"
+readme = "README.md"
+keywords = ["cstr", "cstring", "no_std", "string", "c"]
+
+[dependencies]
+cty = "0.1"
+memchr = { version = "1.0", default-features = false }
+
+[features]
+alloc = []
