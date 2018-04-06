@@ -21,11 +21,15 @@ extern crate cty;
 extern crate memchr;
 
 #[cfg(feature = "alloc")]
+use alloc::arc::Arc;
+#[cfg(feature = "alloc")]
 use alloc::borrow::{Borrow, Cow, ToOwned};
 #[cfg(feature = "alloc")]
-use alloc::{String, Vec};
-#[cfg(feature = "alloc")]
 use alloc::boxed::Box;
+#[cfg(feature = "alloc")]
+use alloc::rc::Rc;
+#[cfg(feature = "alloc")]
+use alloc::{String, Vec};
 #[cfg(feature = "alloc")]
 use core::{mem, ops, ptr};
 
@@ -175,7 +179,7 @@ mod ascii {
 ///
 /// # Examples
 ///
-/// ```no_run
+/// ```ignore (extern-declaration)
 /// # fn main() {
 /// use cstr_core::CString;
 /// use cstr_core::c_char;
@@ -228,7 +232,7 @@ pub struct CString {
 ///
 /// Inspecting a foreign C string:
 ///
-/// ```no_run
+/// ```ignore (extern-declaration)
 /// use cstr_core::CStr;
 /// use cstr_core::c_char;
 ///
@@ -242,7 +246,7 @@ pub struct CString {
 ///
 /// Passing a Rust-originating C string:
 ///
-/// ```no_run
+/// ```ignore (extern-declaration)
 /// use cstr_core::{CString, CStr};
 /// use cstr_core::c_char;
 ///
@@ -260,7 +264,7 @@ pub struct CString {
 ///
 /// [`String`]: ../string/struct.String.html
 ///
-/// ```no_run
+/// ```ignore (extern-declaration)
 /// use cstr_core::CStr;
 /// use cstr_core::c_char;
 ///
@@ -355,7 +359,7 @@ impl CString {
     ///
     /// # Examples
     ///
-    /// ```no_run
+    /// ```ignore (extern-declaration)
     /// use cstr_core::CString;
     /// use cstr_core::c_char;
     ///
@@ -428,7 +432,7 @@ impl CString {
     /// Create a `CString`, pass ownership to an `extern` function (via raw pointer), then retake
     /// ownership with `from_raw`:
     ///
-    /// ```no_run
+    /// ```ignore (extern-declaration)
     /// use cstr_core::CString;
     /// use cstr_core::c_char;
     ///
@@ -492,11 +496,9 @@ impl CString {
     ///
     /// [`String`]: ../string/struct.String.html
     pub fn into_string(self) -> Result<String, IntoStringError> {
-        String::from_utf8(self.into_bytes()).map_err(|e| {
-            IntoStringError {
-                error: e.utf8_error(),
-                inner: unsafe { CString::from_vec_unchecked(e.into_bytes()) },
-            }
+        String::from_utf8(self.into_bytes()).map_err(|e| IntoStringError {
+            error: e.utf8_error(),
+            inner: unsafe { CString::from_vec_unchecked(e.into_bytes()) },
         })
     }
 
@@ -724,6 +726,42 @@ impl From<CString> for Box<CStr> {
 }
 
 #[cfg(feature = "alloc")]
+impl From<CString> for Arc<CStr> {
+    #[inline]
+    fn from(s: CString) -> Arc<CStr> {
+        let arc: Arc<[u8]> = Arc::from(s.into_inner());
+        unsafe { Arc::from_raw(Arc::into_raw(arc) as *const CStr) }
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl<'a> From<&'a CStr> for Arc<CStr> {
+    #[inline]
+    fn from(s: &CStr) -> Arc<CStr> {
+        let arc: Arc<[u8]> = Arc::from(s.to_bytes_with_nul());
+        unsafe { Arc::from_raw(Arc::into_raw(arc) as *const CStr) }
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl From<CString> for Rc<CStr> {
+    #[inline]
+    fn from(s: CString) -> Rc<CStr> {
+        let rc: Rc<[u8]> = Rc::from(s.into_inner());
+        unsafe { Rc::from_raw(Rc::into_raw(rc) as *const CStr) }
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl<'a> From<&'a CStr> for Rc<CStr> {
+    #[inline]
+    fn from(s: &CStr) -> Rc<CStr> {
+        let rc: Rc<[u8]> = Rc::from(s.to_bytes_with_nul());
+        unsafe { Rc::from_raw(Rc::into_raw(rc) as *const CStr) }
+    }
+}
+
+#[cfg(feature = "alloc")]
 impl Default for Box<CStr> {
     fn default() -> Box<CStr> {
         let boxed: Box<[u8]> = Box::from([0]);
@@ -828,6 +866,8 @@ impl CStr {
     ///   `ptr`.
     /// * There is no guarantee that the memory pointed to by `ptr` contains a
     ///   valid nul terminator byte at the end of the string.
+    /// * It is not guaranteed that the memory pointed by `ptr` won't change
+    ///   before the `CStr` has been destroyed.
     ///
     /// > **Note**: This operation is intended to be a 0-cost cast but it is
     /// > currently implemented with an up-front calculation of the length of
@@ -835,7 +875,7 @@ impl CStr {
     ///
     /// # Examples
     ///
-    /// ```no_run
+    /// ```ignore (extern-declaration)
     /// # fn main() {
     /// use cstr_core::CStr;
     /// use cstr_core::c_char;
@@ -973,9 +1013,9 @@ impl CStr {
     /// The returned slice will **not** contain the trailing nul that this C
     /// string has.
     ///
-    /// > **Note**: This method is currently implemented as a 0-cost cast, but
-    /// > it is planned to alter its definition in the future to perform the
-    /// > length calculation whenever this method is called.
+    /// > **Note**: This method is currently implemented as a constant-time
+    /// > cast, but it is planned to alter its definition in the future to
+    /// > perform the length calculation whenever this method is called.
     ///
     /// # Examples
     ///
@@ -1021,9 +1061,9 @@ impl CStr {
     /// UTF-8 validity, and then return the [`&str`] if it's valid.
     ///
     /// > **Note**: This method is currently implemented to check for validity
-    /// > after a 0-cost cast, but it is planned to alter its definition in the
-    /// > future to perform the length calculation in addition to the UTF-8
-    /// > check whenever this method is called.
+    /// > after a constant-time cast, but it is planned to alter its definition
+    /// > in the future to perform the length calculation in addition to the
+    /// > UTF-8 check whenever this method is called.
     ///
     /// [`&str`]: ../primitive.str.html
     ///
@@ -1051,9 +1091,9 @@ impl CStr {
     /// with `U+FFFD REPLACEMENT CHARACTER`.
     ///
     /// > **Note**: This method is currently implemented to check for validity
-    /// > after a 0-cost cast, but it is planned to alter its definition in the
-    /// > future to perform the length calculation in addition to the UTF-8
-    /// > check whenever this method is called.
+    /// > after a constant-time cast, but it is planned to alter its definition
+    /// > in the future to perform the length calculation in addition to the
+    /// > UTF-8 check whenever this method is called.
     ///
     /// [`Cow`]: ../borrow/enum.Cow.html
     /// [`str`]: ../primitive.str.html
@@ -1174,8 +1214,8 @@ impl AsRef<CStr> for CString {
 mod tests {
     use super::*;
     use std::borrow::Cow::{Borrowed, Owned};
-    use std::hash::{Hash, Hasher};
     use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
 
     #[test]
     fn c_to_rust() {
@@ -1314,5 +1354,22 @@ mod tests {
     fn boxed_default() {
         let boxed = <Box<CStr>>::default();
         assert_eq!(boxed.to_bytes_with_nul(), &[0]);
+    }
+
+    #[test]
+    fn into_rc() {
+        let orig: &[u8] = b"Hello, world!\0";
+        let cstr = CStr::from_bytes_with_nul(orig).unwrap();
+        let rc: Rc<CStr> = Rc::from(cstr);
+        let arc: Arc<CStr> = Arc::from(cstr);
+
+        assert_eq!(&*rc, cstr);
+        assert_eq!(&*arc, cstr);
+
+        let rc2: Rc<CStr> = Rc::from(cstr.to_owned());
+        let arc2: Arc<CStr> = Arc::from(cstr.to_owned());
+
+        assert_eq!(&*rc2, cstr);
+        assert_eq!(&*arc2, cstr);
     }
 }
