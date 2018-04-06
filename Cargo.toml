@@ -1,6 +1,6 @@
 [package]
 name = "cstr_core"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Amanieu d'Antras <amanieu@gmail.com>"]
 description = "Implementation of CStr and CString for no_std environments."
 documentation = "https://docs.rs/cstr_core/"
