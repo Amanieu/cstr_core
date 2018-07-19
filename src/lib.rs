@@ -21,7 +21,7 @@ extern crate cty;
 extern crate memchr;
 
 #[cfg(feature = "alloc")]
-use alloc::arc::Arc;
+use alloc::sync::Arc;
 #[cfg(feature = "alloc")]
 use alloc::borrow::{Borrow, Cow, ToOwned};
 #[cfg(feature = "alloc")]
@@ -29,7 +29,9 @@ use alloc::boxed::Box;
 #[cfg(feature = "alloc")]
 use alloc::rc::Rc;
 #[cfg(feature = "alloc")]
-use alloc::{String, Vec};
+use alloc::string::String;
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 #[cfg(feature = "alloc")]
 use core::{mem, ops, ptr};
 
