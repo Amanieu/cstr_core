@@ -15,3 +15,4 @@ memchr = { version = "2.0", default-features = false }
 
 [features]
 alloc = []
+use_libc = ["memchr/libc"]
