@@ -10,7 +10,7 @@ readme = "README.md"
 keywords = ["cstr", "cstring", "no_std", "string", "c"]
 
 [dependencies]
-cty = "0.1"
+cty = "0.2"
 memchr = { version = "2.0", default-features = false }
 
 [features]
