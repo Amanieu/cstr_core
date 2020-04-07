@@ -9,7 +9,6 @@
 // except according to those terms.
 
 #![no_std]
-#![cfg_attr(feature = "alloc", feature(alloc))]
 
 #[cfg(test)]
 #[macro_use]

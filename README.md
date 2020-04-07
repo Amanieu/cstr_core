@@ -5,7 +5,7 @@ cstr_core
 
 This crate provides an implementation of `CStr` and `CString` which do not depend on the standard library and are suitable for `no_std` environments.
 
-`CString` support is only available if the `alloc` feature is enabled. Currently this only works on nightly since it uses the `alloc` crate. `CStr` is always available.
+`CString` support is only available if the `alloc` feature is enabled. `CStr` is always available.
 
 ### Documentation
 

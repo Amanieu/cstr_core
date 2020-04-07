@@ -2,7 +2,10 @@ language: rust
 sudo: false
 
 rust:
-- nightly
+  - nightly
+  - beta
+  - stable
+  - 1.36.0
 
 before_script:
 - |
@@ -16,7 +19,6 @@ script:
 
 env:
   global:
-  - TRAVIS_CARGO_NIGHTLY_FEATURE=alloc
 
 notifications:
   email: false
