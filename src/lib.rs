@@ -9,7 +9,6 @@
 // except according to those terms.
 
 #![no_std]
-#![cfg_attr(feature = "alloc", feature(alloc))]
 
 #[cfg(test)]
 #[macro_use]
@@ -21,6 +20,7 @@ extern crate cty;
 extern crate memchr;
 
 #[cfg(feature = "alloc")]
+#[cfg(feature = "arc")]
 use alloc::sync::Arc;
 #[cfg(feature = "alloc")]
 use alloc::borrow::{Borrow, Cow, ToOwned};
@@ -728,6 +728,7 @@ impl From<CString> for Box<CStr> {
 }
 
 #[cfg(feature = "alloc")]
+#[cfg(feature = "arc")]
 impl From<CString> for Arc<CStr> {
     #[inline]
     fn from(s: CString) -> Arc<CStr> {
@@ -737,6 +738,7 @@ impl From<CString> for Arc<CStr> {
 }
 
 #[cfg(feature = "alloc")]
+#[cfg(feature = "arc")]
 impl<'a> From<&'a CStr> for Arc<CStr> {
     #[inline]
     fn from(s: &CStr) -> Arc<CStr> {
@@ -1359,6 +1361,8 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "alloc")]
+    #[cfg(feature = "arc")]
     fn into_rc() {
         let orig: &[u8] = b"Hello, world!\0";
         let cstr = CStr::from_bytes_with_nul(orig).unwrap();
