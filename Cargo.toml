@@ -10,8 +10,8 @@ readme = "README.md"
 keywords = ["cstr", "cstring", "no_std", "string", "c"]
 
 [dependencies]
-cty = "0.1"
-memchr = { version = "2.0", default-features = false }
+cty = "0.2.1"
+memchr = { version = "2.2.1", default-features = false }
 
 [features]
 alloc = []
