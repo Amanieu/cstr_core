@@ -3,6 +3,9 @@ sudo: false
 
 rust:
 - nightly
+- beta
+- stable
+- 1.42.0
 
 before_script:
 - |
@@ -11,12 +14,9 @@ before_script:
 
 script:
 - travis-cargo build
-- travis-cargo test
+- travis-cargo build --features alloc
+- travis-cargo test --features alloc
 - travis-cargo doc -- --no-deps
-
-env:
-  global:
-  - TRAVIS_CARGO_NIGHTLY_FEATURE=alloc
 
 notifications:
   email: false
