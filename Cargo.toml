@@ -1,6 +1,6 @@
 [package]
 name = "cstr_core"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["Amanieu d'Antras <amanieu@gmail.com>"]
 description = "Implementation of CStr and CString for no_std environments."
 documentation = "https://docs.rs/cstr_core/"
@@ -13,7 +13,7 @@ edition = "2018"
 
 [dependencies]
 cty = "0.2.1"
-memchr = { version = "2.2.1", default-features = false }
+memchr = { version = "2.3.3", default-features = false }
 
 [features]
 default = ["arc"]

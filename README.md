@@ -5,7 +5,10 @@ cstr_core
 
 This crate provides an implementation of `CStr` and `CString` which do not depend on the standard library and are suitable for `no_std` environments.
 
-`CString` support is only available if the `alloc` feature is enabled. Currently this only works on nightly since it uses the `alloc` crate. `CStr` is always available.
+`CString` support is only available if the `alloc` feature is enabled, which requires the `alloc` crate.
+`CStr` is always available.
+
+Some hardware targets (e.g. thumbv6m-none-eabi for Cortex M0,M0+) have no support for atomic operations. For these platforms, disable the `arc` feature to omit the parts of the crate that depend on atomic operations. Compatibility with thead-safe code and `Arc<T>` will not be available.
 
 ### Documentation
 
