@@ -345,7 +345,7 @@ impl CString {
     }
 
     fn _new(bytes: Vec<u8>) -> Result<CString, NulError> {
-        match memchr::memchr(0, &bytes) {
+        match bytes.iter().position(|b| *b == 0) {
             Some(i) => Err(NulError(i, bytes)),
             None => Ok(unsafe { CString::from_vec_unchecked(bytes) }),
         }
@@ -967,7 +967,7 @@ impl CStr {
     /// assert!(cstr.is_err());
     /// ```
     pub fn from_bytes_with_nul(bytes: &[u8]) -> Result<&CStr, FromBytesWithNulError> {
-        let nul_pos = memchr::memchr(0, bytes);
+        let nul_pos = bytes.iter().position(|b| *b == 0);
         if let Some(nul_pos) = nul_pos {
             if nul_pos + 1 != bytes.len() {
                 return Err(FromBytesWithNulError::interior_nul(nul_pos));
