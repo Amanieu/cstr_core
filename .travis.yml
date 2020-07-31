@@ -22,5 +22,9 @@ script:
 - travis-cargo build --no-default-features --features libc
 - travis-cargo doc -- --no-deps
 
+env:
+  global:
+    - TRAVIS_CARGO_NIGHTLY_FEATURE=
+
 notifications:
   email: false
