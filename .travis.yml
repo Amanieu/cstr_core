@@ -16,6 +16,10 @@ script:
 - travis-cargo build
 - travis-cargo build --features alloc
 - travis-cargo test --features alloc
+- travis-cargo build --no-default-features
+- travis-cargo build --no-default-features --features alloc
+- travis-cargo build --no-default-features --features memchr
+- travis-cargo build --no-default-features --features libc
 - travis-cargo doc -- --no-deps
 
 notifications:
