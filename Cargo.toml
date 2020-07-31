@@ -13,8 +13,10 @@ edition = "2018"
 
 [dependencies]
 cty = "0.2.1"
+memchr = { version = "2.3.3", default-features = false, optional = true }
 
 [features]
-default = ["arc"]
+default = ["arc", "memchr"]
 alloc = []
 arc = []
+use_libc = ["memchr", "memchr/libc"]
