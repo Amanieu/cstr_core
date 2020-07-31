@@ -209,6 +209,7 @@ pub struct CString {
 /// ```
 ///
 /// [`CString`]: struct.CString.html
+/// [`String`]: https://doc.rust-lang.org/std/string/struct.String.html
 /// [`from_ptr`]: #method.from_ptr
 #[derive(Hash)]
 // FIXME:
