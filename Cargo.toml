@@ -16,7 +16,7 @@ cty = "0.2.1"
 memchr = { version = "2.3.3", default-features = false }
 
 [features]
-default = ["arc"]
+default = ["arc", "alloc"]
 alloc = []
 arc = []
 use_libc = ["memchr/libc"]
