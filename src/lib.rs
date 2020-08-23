@@ -1,6 +1,6 @@
 #![no_std]
 #![warn(rust_2018_idioms)]
-#![cfg_attr(feature = "const_unsafe_new", feature(const_raw_ptr_deref))]
+#![cfg_attr(feature = "nightly", feature(const_raw_ptr_deref))]
 
 #[cfg(test)]
 extern crate std;
@@ -997,7 +997,7 @@ impl CStr {
     ///     assert_eq!(cstr, &*cstring);
     /// }
     /// ```
-    #[cfg(feature = "const_unsafe_new")]
+    #[cfg(feature = "nightly")]
     #[inline]
     pub const unsafe fn from_bytes_with_nul_unchecked(bytes: &[u8]) -> &CStr {
         &*(bytes as *const [u8] as *const CStr)
@@ -1020,7 +1020,7 @@ impl CStr {
     ///     assert_eq!(cstr, &*cstring);
     /// }
     /// ```
-    #[cfg(not(feature = "const_unsafe_new"))]
+    #[cfg(not(feature = "nightly"))]
     #[inline]
     pub unsafe fn from_bytes_with_nul_unchecked(bytes: &[u8]) -> &CStr {
         &*(bytes as *const [u8] as *const CStr)
@@ -1440,7 +1440,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "const_unsafe_new")]
+    #[cfg(feature = "nightly")]
     fn const_cstr() {
         const TESTING_CSTR: &CStr = unsafe { CStr::from_bytes_with_nul_unchecked(b"Hello world!\0") };
         let _ = TESTING_CSTR.as_ptr(); 

@@ -19,5 +19,5 @@ memchr = { version = "2.3.3", default-features = false }
 default = ["arc", "alloc"]
 alloc = []
 arc = []
-const_unsafe_new = []
+nightly = []
 use_libc = ["memchr/libc"]
