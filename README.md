@@ -8,7 +8,7 @@ This crate provides an implementation of `CStr` and `CString` which do not depen
 `CString` support is only available if the `alloc` feature is enabled, which requires the `alloc` crate.
 `CStr` is always available.
 
-Some hardware targets (e.g. thumbv6m-none-eabi for Cortex M0,M0+) have no support for atomic operations. For these platforms, disable the `arc` feature to omit the parts of the crate that depend on atomic operations. Compatibility with thead-safe code and `Arc<T>` will not be available.
+Some hardware targets (e.g. thumbv6m-none-eabi for Cortex M0,M0+) have no support for atomic operations. For these platforms, disable the `arc` feature to omit the parts of the crate that depend on atomic operations. Compatibility with thead-safe code and `Arc<T>` will not be available. In addition, the `const_new_unsafe` feature allows the usage of `CStr::from_bytes_with_nul_unchecked` to be used in a `const` context. However, it requires a nightly version of the compiler.
 
 ### Documentation
 
