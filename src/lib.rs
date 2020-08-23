@@ -1,5 +1,6 @@
 #![no_std]
 #![warn(rust_2018_idioms)]
+#![cfg_attr(feature = "nightly", feature(const_raw_ptr_deref))]
 
 #[cfg(test)]
 extern crate std;
@@ -996,6 +997,30 @@ impl CStr {
     ///     assert_eq!(cstr, &*cstring);
     /// }
     /// ```
+    #[cfg(feature = "nightly")]
+    #[inline]
+    pub const unsafe fn from_bytes_with_nul_unchecked(bytes: &[u8]) -> &CStr {
+        &*(bytes as *const [u8] as *const CStr)
+    }
+
+    /// Unsafely creates a C string wrapper from a byte slice.
+    ///
+    /// This function will cast the provided `bytes` to a `CStr` wrapper without
+    /// performing any sanity checks. The provided slice **must** be nul-terminated
+    /// and not contain any interior nul bytes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cstr_core::{CStr, CString};
+    ///
+    /// unsafe {
+    ///     let cstring = CString::new("hello").expect("CString::new failed");
+    ///     let cstr = CStr::from_bytes_with_nul_unchecked(cstring.to_bytes_with_nul());
+    ///     assert_eq!(cstr, &*cstring);
+    /// }
+    /// ```
+    #[cfg(not(feature = "nightly"))]
     #[inline]
     pub unsafe fn from_bytes_with_nul_unchecked(bytes: &[u8]) -> &CStr {
         &*(bytes as *const [u8] as *const CStr)
@@ -1412,5 +1437,12 @@ mod tests {
 
         assert_eq!(&*rc2, cstr);
         assert_eq!(&*arc2, cstr);
+    }
+
+    #[test]
+    #[cfg(feature = "nightly")]
+    fn const_cstr() {
+        const TESTING_CSTR: &CStr = unsafe { CStr::from_bytes_with_nul_unchecked(b"Hello world!\0") };
+        let _ = TESTING_CSTR.as_ptr(); 
     }
 }
