@@ -3,7 +3,7 @@ cstr_core
 
 [![Build Status](https://travis-ci.org/Amanieu/cstr_core.svg?branch=master)](https://travis-ci.org/Amanieu/cstr_core) [![Crates.io](https://img.shields.io/crates/v/cstr_core.svg)](https://crates.io/crates/cstr_core)
 
-This crate provides an implementation of `CStr` and `CString` which do not depend on the standard library and are suitable for `no_std` environments.
+This crate provides implementations of `CStr` and `CString` which do not depend on the standard library and are suitable for `no_std` environments.
 
 `CString` support is only available if the `alloc` feature is enabled, which requires the `alloc` crate.
 `CStr` is always available.
