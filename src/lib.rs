@@ -815,7 +815,7 @@ use std::ffi::{CStr as StdCStr, CString as StdCString};
 impl From<CString> for StdCString {
     #[inline]
     fn from(s: CString) -> StdCString {
-        unsafe { StdCString::from_vec_unchecked(s.into_bytes_with_nul()) }
+        unsafe { StdCString::from_vec_unchecked(s.into_bytes()) }
     }
 }
 
@@ -831,7 +831,7 @@ impl<'a> From<&'a CStr> for &'a StdCStr {
 impl From<StdCString> for CString {
     #[inline]
     fn from(s: StdCString) -> CString {
-        unsafe { CString::from_vec_unchecked(s.into_bytes_with_nul()) }
+        unsafe { CString::from_vec_unchecked(s.into_bytes()) }
     }
 }
 
