@@ -847,7 +847,7 @@ impl<'a> From<&'a StdCStr> for &'a CStr {
 impl AsRef<StdCStr> for CString {
     #[inline]
     fn as_ref(&self) -> &StdCStr {
-        unsafe { StdCStr::from_bytes_with_nul_unchecked(self.to_bytes_with_nul()) }
+        AsRef::<CStr>::as_ref(self).as_ref()
     }
 }
 
