@@ -813,13 +813,15 @@ use std::ffi::{CStr as StdCStr, CString as StdCString};
 
 #[cfg(feature = "std")]
 impl From<CString> for StdCString {
+    #[inline]
     fn from(s: CString) -> StdCString {
-        unsafe { StdCString::from_raw(s.into_raw()) }
+        unsafe { StdCString::from_vec_unchecked(s.into_bytes_with_nul()) }
     }
 }
 
 #[cfg(feature = "std")]
 impl<'a> From<&'a CStr> for &'a StdCStr {
+    #[inline]
     fn from(s: &'a CStr) -> &'a StdCStr {
         s.as_ref()
     }
@@ -827,27 +829,31 @@ impl<'a> From<&'a CStr> for &'a StdCStr {
 
 #[cfg(feature = "std")]
 impl From<StdCString> for CString {
+    #[inline]
     fn from(s: StdCString) -> CString {
-        unsafe { CString::from_raw(s.into_raw()) }
+        unsafe { CString::from_vec_unchecked(s.into_bytes_with_nul()) }
     }
 }
 
 #[cfg(feature = "std")]
 impl<'a> From<&'a StdCStr> for &'a CStr {
+    #[inline]
     fn from(s: &'a StdCStr) -> &'a CStr {
-        unsafe { CStr::from_ptr(s.as_ptr()) }
+        unsafe { CStr::from_bytes_with_nul_unchecked(s.to_bytes_with_nul()) }
     }
 }
 
 #[cfg(feature = "std")]
 impl AsRef<StdCStr> for CString {
+    #[inline]
     fn as_ref(&self) -> &StdCStr {
-        unsafe { StdCStr::from_ptr(self.as_ptr()) }
+        unsafe { StdCStr::from_bytes_with_nul_unchecked(self.to_bytes_with_nul()) }
     }
 }
 
 #[cfg(feature = "std")]
 impl Borrow<StdCStr> for CString {
+    #[inline]
     fn borrow(&self) -> &StdCStr {
         self.as_ref()
     }
@@ -855,8 +861,9 @@ impl Borrow<StdCStr> for CString {
 
 #[cfg(feature = "std")]
 impl AsRef<StdCStr> for CStr {
+    #[inline]
     fn as_ref(&self) -> &StdCStr {
-        unsafe { StdCStr::from_ptr(self.as_ptr()) }
+        unsafe { StdCStr::from_bytes_with_nul_unchecked(self.to_bytes_with_nul()) }
     }
 }
 
