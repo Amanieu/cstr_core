@@ -1,4 +1,4 @@
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)]
 #![warn(rust_2018_idioms)]
 #![cfg_attr(feature = "nightly", feature(const_raw_ptr_deref))]
 
@@ -805,6 +805,65 @@ impl Default for Box<CStr> {
     fn default() -> Box<CStr> {
         let boxed: Box<[u8]> = Box::from([0]);
         unsafe { Box::from_raw(Box::into_raw(boxed) as *mut CStr) }
+    }
+}
+
+#[cfg(feature = "std")]
+use std::ffi::{CStr as StdCStr, CString as StdCString};
+
+#[cfg(feature = "std")]
+impl From<CString> for StdCString {
+    #[inline]
+    fn from(s: CString) -> StdCString {
+        unsafe { StdCString::from_vec_unchecked(s.into_bytes()) }
+    }
+}
+
+#[cfg(feature = "std")]
+impl<'a> From<&'a CStr> for &'a StdCStr {
+    #[inline]
+    fn from(s: &'a CStr) -> &'a StdCStr {
+        s.as_ref()
+    }
+}
+
+#[cfg(feature = "std")]
+impl From<StdCString> for CString {
+    #[inline]
+    fn from(s: StdCString) -> CString {
+        unsafe { CString::from_vec_unchecked(s.into_bytes()) }
+    }
+}
+
+#[cfg(feature = "std")]
+impl<'a> From<&'a StdCStr> for &'a CStr {
+    #[inline]
+    fn from(s: &'a StdCStr) -> &'a CStr {
+        unsafe { CStr::from_bytes_with_nul_unchecked(s.to_bytes_with_nul()) }
+    }
+}
+
+#[cfg(feature = "std")]
+impl AsRef<StdCStr> for CString {
+    #[inline]
+    fn as_ref(&self) -> &StdCStr {
+        AsRef::<CStr>::as_ref(self).as_ref()
+    }
+}
+
+#[cfg(feature = "std")]
+impl Borrow<StdCStr> for CString {
+    #[inline]
+    fn borrow(&self) -> &StdCStr {
+        self.as_ref()
+    }
+}
+
+#[cfg(feature = "std")]
+impl AsRef<StdCStr> for CStr {
+    #[inline]
+    fn as_ref(&self) -> &StdCStr {
+        unsafe { StdCStr::from_bytes_with_nul_unchecked(self.to_bytes_with_nul()) }
     }
 }
 

@@ -11,6 +11,7 @@ script:
 - cargo build
 - cargo build --features alloc
 - cargo test --features alloc
+- cargo build --features std
 - cargo build --no-default-features
 - cargo build --no-default-features --features alloc
 - cargo build --no-default-features --features use_libc

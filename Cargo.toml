@@ -18,6 +18,7 @@ memchr = { version = "2.3.3", default-features = false }
 [features]
 default = ["arc", "alloc"]
 alloc = []
+std = []
 arc = []
 nightly = []
 use_libc = ["memchr/libc"]
