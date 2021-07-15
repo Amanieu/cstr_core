@@ -1349,7 +1349,7 @@ pub const fn bytes_are_valid(bytes: &[u8]) -> bool {
     true
 }
 
-/// Generate a [CStr] at compile time that is guaranteed to be correct. The given argument should be a static string with no `\0` bytes.
+/// Generate a [CStr] at compile time that is guaranteed to be correct. The given argument should be a string literal with no `\0` bytes.
 ///
 /// This macro validates at compile time that the given string does not contain `\0` and automatically appends `\0`.
 ///
@@ -1360,13 +1360,13 @@ pub const fn bytes_are_valid(bytes: &[u8]) -> bool {
 ///
 /// **note**: if the string contains `\0` bytes, the error looks like:
 /// ```bash
-/// error[E0080]: evaluation of constant value failed
-/// --> src/lib.rs:1358:29
-///  |
-///4 | let str: &cstr_core::CStr = cstr_core::cstr!("Hello \0world!");
-///  |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ attempt to compute `0_usize - 1_usize`, which would overflow
-///  |
-///  = note: this error originates in the macro `cstr_core::cstr` (in Nightly builds, run with -Z macro-backtrace for more info)
+///  error[E0080]: evaluation of constant value failed
+///  --> src/lib.rs:1358:29
+///   |
+/// 4 | let str: &cstr_core::CStr = cstr_core::cstr!("Hello \0world!");
+///   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ attempt to compute `0_usize - 1_usize`, which would overflow
+///   |
+///   = note: this error originates in the macro `cstr_core::cstr` (in Nightly builds, run with -Z macro-backtrace for more info)
 /// ```
 #[macro_export]
 macro_rules! cstr {
