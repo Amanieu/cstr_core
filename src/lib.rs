@@ -1332,6 +1332,54 @@ impl AsRef<CStr> for CString {
     }
 }
 
+#[inline]
+#[doc(hidden)]
+pub const fn bytes_are_valid(bytes: &[u8]) -> bool {
+    if bytes.len() == 0 || bytes[bytes.len() - 1] != 0 {
+        return false;
+    }
+    let mut index = 0;
+    // No for loops yet in const functions
+    while index < bytes.len() - 1 {
+        if bytes[index] == 0 {
+            return false;
+        }
+        index += 1;
+    }
+    true
+}
+
+/// Generate a [CStr] at compile time that is guaranteed to be correct. The given argument should be a string literal with no `\0` bytes.
+///
+/// This macro validates at compile time that the given string does not contain `\0` and automatically appends `\0`.
+///
+/// ```rust
+/// let str: &cstr_core::CStr = cstr_core::cstr!("Hello world!");
+/// assert_eq!("Hello world!", str.to_str().unwrap());
+/// ```
+///
+/// **note**: if the string contains `\0` bytes, the error looks like:
+/// ```bash
+///  error[E0080]: evaluation of constant value failed
+///  --> src/lib.rs:1358:29
+///   |
+/// 4 | let str: &cstr_core::CStr = cstr_core::cstr!("Hello \0world!");
+///   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ attempt to compute `0_usize - 1_usize`, which would overflow
+///   |
+///   = note: this error originates in the macro `cstr_core::cstr` (in Nightly builds, run with -Z macro-backtrace for more info)
+/// ```
+#[macro_export]
+macro_rules! cstr {
+    ($e:expr) => {{
+        const STR: &[u8] = concat!($e, "\0").as_bytes();
+        const STR_VALID: bool = $crate::bytes_are_valid(STR);
+        let _ = [(); 0 - (!(STR_VALID) as usize)];
+        unsafe {
+            $crate::CStr::from_bytes_with_nul_unchecked(STR)
+        }
+    }}
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1501,7 +1549,8 @@ mod tests {
     #[test]
     #[cfg(feature = "nightly")]
     fn const_cstr() {
-        const TESTING_CSTR: &CStr = unsafe { CStr::from_bytes_with_nul_unchecked(b"Hello world!\0") };
-        let _ = TESTING_CSTR.as_ptr(); 
+        const TESTING_CSTR: &CStr =
+            unsafe { CStr::from_bytes_with_nul_unchecked(b"Hello world!\0") };
+        let _ = TESTING_CSTR.as_ptr();
     }
 }
