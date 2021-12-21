@@ -2,6 +2,7 @@
 #![warn(rust_2018_idioms)]
 #![cfg_attr(feature = "nightly", feature(const_raw_ptr_deref))]
 #![cfg_attr(feature = "nightly", feature(const_slice_from_raw_parts))]
+#![cfg_attr(feature = "nightly", feature(const_str_from_utf8))]
 
 #[cfg(test)]
 extern crate std;
@@ -1254,7 +1255,31 @@ impl CStr {
     /// let cstr = CStr::from_bytes_with_nul(b"foo\0").expect("CStr::from_bytes_with_nul failed");
     /// assert_eq!(cstr.to_str(), Ok("foo"));
     /// ```
-    pub fn to_str(&self) -> Result<&str, Utf8Error> {
+    #[cfg(not(feature = "nightly"))]
+    pub  fn to_str(&self) -> Result<&str, Utf8Error> {
+        // N.B., when `CStr` is changed to perform the length check in `.to_bytes()`
+        // instead of in `from_ptr()`, it may be worth considering if this should
+        // be rewritten to do the UTF-8 check inline with the length calculation
+        // instead of doing it afterwards.
+        str::from_utf8(self.to_bytes())
+    }
+
+    /// Yields a [`&str`] slice if the `CStr` contains valid UTF-8.
+    ///
+    /// If the contents of the `CStr` are valid UTF-8 data, this
+    /// function will return the corresponding [`&str`] slice. Otherwise,
+    /// it will return an error with details of where UTF-8 validation failed.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cstr_core::CStr;
+    ///
+    /// let cstr = CStr::from_bytes_with_nul(b"foo\0").expect("CStr::from_bytes_with_nul failed");
+    /// assert_eq!(cstr.to_str(), Ok("foo"));
+    /// ```
+    #[cfg(feature = "nightly")]
+    pub const fn to_str(&self) -> Result<&str, Utf8Error> {
         // N.B., when `CStr` is changed to perform the length check in `.to_bytes()`
         // instead of in `from_ptr()`, it may be worth considering if this should
         // be rewritten to do the UTF-8 check inline with the length calculation
