@@ -1,6 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![warn(rust_2018_idioms)]
 #![cfg_attr(feature = "nightly", feature(const_raw_ptr_deref))]
+#![cfg_attr(feature = "nightly", feature(const_slice_from_raw_parts))]
 
 #[cfg(test)]
 extern crate std;
@@ -1155,9 +1156,38 @@ impl CStr {
     /// assert_eq!(cstr.to_bytes(), b"foo");
     /// ```
     #[inline]
+    #[cfg(not(feature = "nightly"))]
     pub fn to_bytes(&self) -> &[u8] {
         let bytes = self.to_bytes_with_nul();
         &bytes[..bytes.len() - 1]
+    }
+
+    /// Converts this C string to a byte slice.
+    ///
+    /// The returned slice will **not** contain the trailing nul terminator that this C
+    /// string has.
+    ///
+    /// > **Note**: This method is currently implemented as a constant-time
+    /// > cast, but it is planned to alter its definition in the future to
+    /// > perform the length calculation whenever this method is called.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cstr_core::CStr;
+    ///
+    /// let cstr = CStr::from_bytes_with_nul(b"foo\0").expect("CStr::from_bytes_with_nul failed");
+    /// assert_eq!(cstr.to_bytes(), b"foo");
+    /// ```
+    #[inline]
+    #[cfg(feature = "nightly")]
+    pub const fn to_bytes(&self) -> &[u8] {
+        let bytes = self.to_bytes_with_nul();
+        // unsafe: This is just like [:len - 1] (but const usable), and any underflow of the `- 1`
+        // is avoided by the type's guarantee that there is a trailing nul byte.
+        unsafe {
+            slice::from_raw_parts(bytes.as_ptr(), bytes.len() - 1)
+        }
     }
 
     /// Converts this C string to a byte slice containing the trailing 0 byte.
