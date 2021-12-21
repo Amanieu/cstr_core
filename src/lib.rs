@@ -1180,6 +1180,32 @@ impl CStr {
     /// assert_eq!(cstr.to_bytes_with_nul(), b"foo\0");
     /// ```
     #[inline]
+    #[cfg(feature = "nightly")]
+    pub const fn to_bytes_with_nul(&self) -> &[u8] {
+        unsafe { &*(&self.inner as *const [c_char] as *const [u8]) }
+    }
+
+    /// Converts this C string to a byte slice containing the trailing 0 byte.
+    ///
+    /// This function is the equivalent of [`to_bytes`] except that it will retain
+    /// the trailing nul terminator instead of chopping it off.
+    ///
+    /// > **Note**: This method is currently implemented as a 0-cost cast, but
+    /// > it is planned to alter its definition in the future to perform the
+    /// > length calculation whenever this method is called.
+    ///
+    /// [`to_bytes`]: #method.to_bytes
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cstr_core::CStr;
+    ///
+    /// let cstr = CStr::from_bytes_with_nul(b"foo\0").expect("CStr::from_bytes_with_nul failed");
+    /// assert_eq!(cstr.to_bytes_with_nul(), b"foo\0");
+    /// ```
+    #[inline]
+    #[cfg(not(feature = "nightly"))]
     pub fn to_bytes_with_nul(&self) -> &[u8] {
         unsafe { &*(&self.inner as *const [c_char] as *const [u8]) }
     }
