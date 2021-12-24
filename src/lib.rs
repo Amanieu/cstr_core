@@ -1059,8 +1059,54 @@ impl CStr {
     /// let cstr = CStr::from_bytes_with_nul(b"he\0llo\0");
     /// assert!(cstr.is_err());
     /// ```
+    #[cfg(feature = "nightly")]
+    pub const fn from_bytes_with_nul(bytes: &[u8]) -> Result<&CStr, FromBytesWithNulError> {
+        let nul_pos = memchr(0, bytes);
+        if let Some(nul_pos) = nul_pos {
+            if nul_pos + 1 != bytes.len() {
+                return Err(FromBytesWithNulError::interior_nul(nul_pos));
+            }
+            Ok(unsafe { CStr::from_bytes_with_nul_unchecked(bytes) })
+        } else {
+            Err(FromBytesWithNulError::not_nul_terminated())
+        }
+    }
+
+    /// Creates a C string wrapper from a byte slice.
+    ///
+    /// This function will cast the provided `bytes` to a `CStr`
+    /// wrapper after ensuring that the byte slice is nul-terminated
+    /// and does not contain any interior nul bytes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cstr_core::CStr;
+    ///
+    /// let cstr = CStr::from_bytes_with_nul(b"hello\0");
+    /// assert!(cstr.is_ok());
+    /// ```
+    ///
+    /// Creating a `CStr` without a trailing nul terminator is an error:
+    ///
+    /// ```
+    /// use cstr_core::CStr;
+    ///
+    /// let cstr = CStr::from_bytes_with_nul(b"hello");
+    /// assert!(cstr.is_err());
+    /// ```
+    ///
+    /// Creating a `CStr` with an interior nul byte is an error:
+    ///
+    /// ```
+    /// use cstr_core::CStr;
+    ///
+    /// let cstr = CStr::from_bytes_with_nul(b"he\0llo\0");
+    /// assert!(cstr.is_err());
+    /// ```
+    #[cfg(not(feature = "nightly"))]
     pub fn from_bytes_with_nul(bytes: &[u8]) -> Result<&CStr, FromBytesWithNulError> {
-        let nul_pos = memchr::memchr(0, bytes);
+        let nul_pos = memchr(0, bytes);
         if let Some(nul_pos) = nul_pos {
             if nul_pos + 1 != bytes.len() {
                 return Err(FromBytesWithNulError::interior_nul(nul_pos));
