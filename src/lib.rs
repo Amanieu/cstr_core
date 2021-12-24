@@ -3,6 +3,7 @@
 #![cfg_attr(feature = "nightly", feature(const_raw_ptr_deref))]
 #![cfg_attr(feature = "nightly", feature(const_slice_from_raw_parts))]
 #![cfg_attr(feature = "nightly", feature(const_str_from_utf8))]
+#![cfg_attr(feature = "nightly", feature(const_eval_select))]
 
 #[cfg(test)]
 extern crate std;
@@ -43,6 +44,35 @@ unsafe fn strlen(p: *const c_char) -> usize {
     }
     n
 }
+
+/// A drop-in implementation of `memchr` that is const.
+///
+/// This is expected to perform way worse than any version the `memchr` crate provides.
+#[cfg(feature = "nightly")]
+const fn memchr_const(needle: u8, haystack: &[u8]) -> Option<usize> {
+    let mut i = 0;
+    loop {
+        i += 1;
+        if haystack.len() == i {
+            return None;
+        }
+        if haystack[i] == needle {
+            return Some(i);
+        }
+    }
+}
+
+/// Wrapper around memchr that is const, but still fast at runtime by dispatching through
+/// const_eval_select.
+#[inline]
+#[cfg(feature = "nightly")]
+const fn memchr(needle: u8, haystack: &[u8]) -> Option<usize> {
+    // unsafe: Both versions provide the same functionality
+    unsafe { core::intrinsics::const_eval_select((needle, haystack), memchr_const, memchr::memchr) }
+}
+
+#[cfg(not(feature = "nightly"))]
+use memchr::memchr;
 
 /// A type representing an owned, C-compatible, nul-terminated string with no nul bytes in the
 /// middle.
