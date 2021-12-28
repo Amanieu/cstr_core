@@ -3,6 +3,7 @@
 #![cfg_attr(feature = "nightly", feature(const_raw_ptr_deref))]
 #![cfg_attr(feature = "nightly", feature(const_slice_from_raw_parts))]
 #![cfg_attr(feature = "nightly", feature(const_str_from_utf8))]
+#![cfg_attr(feature = "nightly", feature(const_eval_select))]
 
 #[cfg(test)]
 extern crate std;
@@ -43,6 +44,35 @@ unsafe fn strlen(p: *const c_char) -> usize {
     }
     n
 }
+
+/// A drop-in implementation of `memchr` that is const.
+///
+/// This is expected to perform way worse than any version the `memchr` crate provides.
+#[cfg(feature = "nightly")]
+const fn memchr_const(needle: u8, haystack: &[u8]) -> Option<usize> {
+    let mut i = 0;
+    loop {
+        i += 1;
+        if haystack.len() == i {
+            return None;
+        }
+        if haystack[i] == needle {
+            return Some(i);
+        }
+    }
+}
+
+/// Wrapper around memchr that is const, but still fast at runtime by dispatching through
+/// const_eval_select.
+#[inline]
+#[cfg(feature = "nightly")]
+const fn memchr(needle: u8, haystack: &[u8]) -> Option<usize> {
+    // unsafe: Both versions provide the same functionality
+    unsafe { core::intrinsics::const_eval_select((needle, haystack), memchr_const, memchr::memchr) }
+}
+
+#[cfg(not(feature = "nightly"))]
+use memchr::memchr;
 
 /// A type representing an owned, C-compatible, nul-terminated string with no nul bytes in the
 /// middle.
@@ -282,12 +312,12 @@ enum FromBytesWithNulErrorKind {
 }
 
 impl FromBytesWithNulError {
-    fn interior_nul(pos: usize) -> FromBytesWithNulError {
+    const fn interior_nul(pos: usize) -> FromBytesWithNulError {
         FromBytesWithNulError {
             kind: FromBytesWithNulErrorKind::InteriorNul(pos),
         }
     }
-    fn not_nul_terminated() -> FromBytesWithNulError {
+    const fn not_nul_terminated() -> FromBytesWithNulError {
         FromBytesWithNulError {
             kind: FromBytesWithNulErrorKind::NotNulTerminated,
         }
@@ -1029,8 +1059,54 @@ impl CStr {
     /// let cstr = CStr::from_bytes_with_nul(b"he\0llo\0");
     /// assert!(cstr.is_err());
     /// ```
+    #[cfg(feature = "nightly")]
+    pub const fn from_bytes_with_nul(bytes: &[u8]) -> Result<&CStr, FromBytesWithNulError> {
+        let nul_pos = memchr(0, bytes);
+        if let Some(nul_pos) = nul_pos {
+            if nul_pos + 1 != bytes.len() {
+                return Err(FromBytesWithNulError::interior_nul(nul_pos));
+            }
+            Ok(unsafe { CStr::from_bytes_with_nul_unchecked(bytes) })
+        } else {
+            Err(FromBytesWithNulError::not_nul_terminated())
+        }
+    }
+
+    /// Creates a C string wrapper from a byte slice.
+    ///
+    /// This function will cast the provided `bytes` to a `CStr`
+    /// wrapper after ensuring that the byte slice is nul-terminated
+    /// and does not contain any interior nul bytes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cstr_core::CStr;
+    ///
+    /// let cstr = CStr::from_bytes_with_nul(b"hello\0");
+    /// assert!(cstr.is_ok());
+    /// ```
+    ///
+    /// Creating a `CStr` without a trailing nul terminator is an error:
+    ///
+    /// ```
+    /// use cstr_core::CStr;
+    ///
+    /// let cstr = CStr::from_bytes_with_nul(b"hello");
+    /// assert!(cstr.is_err());
+    /// ```
+    ///
+    /// Creating a `CStr` with an interior nul byte is an error:
+    ///
+    /// ```
+    /// use cstr_core::CStr;
+    ///
+    /// let cstr = CStr::from_bytes_with_nul(b"he\0llo\0");
+    /// assert!(cstr.is_err());
+    /// ```
+    #[cfg(not(feature = "nightly"))]
     pub fn from_bytes_with_nul(bytes: &[u8]) -> Result<&CStr, FromBytesWithNulError> {
-        let nul_pos = memchr::memchr(0, bytes);
+        let nul_pos = memchr(0, bytes);
         if let Some(nul_pos) = nul_pos {
             if nul_pos + 1 != bytes.len() {
                 return Err(FromBytesWithNulError::interior_nul(nul_pos));
