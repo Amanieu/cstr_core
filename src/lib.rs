@@ -4,6 +4,7 @@
 #![cfg_attr(feature = "nightly", feature(const_slice_from_raw_parts))]
 #![cfg_attr(feature = "nightly", feature(const_str_from_utf8))]
 #![cfg_attr(feature = "nightly", feature(const_eval_select))]
+#![cfg_attr(feature = "nightly", feature(core_intrinsics))]
 
 #[cfg(test)]
 extern crate std;
