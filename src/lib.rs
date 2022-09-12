@@ -1135,32 +1135,8 @@ impl CStr {
     ///     assert_eq!(cstr, &*cstring);
     /// }
     /// ```
-    #[cfg(feature = "nightly")]
     #[inline]
     pub const unsafe fn from_bytes_with_nul_unchecked(bytes: &[u8]) -> &CStr {
-        &*(bytes as *const [u8] as *const CStr)
-    }
-
-    /// Unsafely creates a C string wrapper from a byte slice.
-    ///
-    /// This function will cast the provided `bytes` to a `CStr` wrapper without
-    /// performing any sanity checks. The provided slice **must** be nul-terminated
-    /// and not contain any interior nul bytes.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use cstr_core::{CStr, CString};
-    ///
-    /// unsafe {
-    ///     let cstring = CString::new("hello").expect("CString::new failed");
-    ///     let cstr = CStr::from_bytes_with_nul_unchecked(cstring.to_bytes_with_nul());
-    ///     assert_eq!(cstr, &*cstring);
-    /// }
-    /// ```
-    #[cfg(not(feature = "nightly"))]
-    #[inline]
-    pub unsafe fn from_bytes_with_nul_unchecked(bytes: &[u8]) -> &CStr {
         &*(bytes as *const [u8] as *const CStr)
     }
 
@@ -1288,33 +1264,7 @@ impl CStr {
     /// assert_eq!(cstr.to_bytes_with_nul(), b"foo\0");
     /// ```
     #[inline]
-    #[cfg(feature = "nightly")]
     pub const fn to_bytes_with_nul(&self) -> &[u8] {
-        unsafe { &*(&self.inner as *const [c_char] as *const [u8]) }
-    }
-
-    /// Converts this C string to a byte slice containing the trailing 0 byte.
-    ///
-    /// This function is the equivalent of [`to_bytes`] except that it will retain
-    /// the trailing nul terminator instead of chopping it off.
-    ///
-    /// > **Note**: This method is currently implemented as a 0-cost cast, but
-    /// > it is planned to alter its definition in the future to perform the
-    /// > length calculation whenever this method is called.
-    ///
-    /// [`to_bytes`]: #method.to_bytes
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use cstr_core::CStr;
-    ///
-    /// let cstr = CStr::from_bytes_with_nul(b"foo\0").expect("CStr::from_bytes_with_nul failed");
-    /// assert_eq!(cstr.to_bytes_with_nul(), b"foo\0");
-    /// ```
-    #[inline]
-    #[cfg(not(feature = "nightly"))]
-    pub fn to_bytes_with_nul(&self) -> &[u8] {
         unsafe { &*(&self.inner as *const [c_char] as *const [u8]) }
     }
 
@@ -1705,10 +1655,11 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "nightly")]
     fn const_cstr() {
         const TESTING_CSTR: &CStr =
             unsafe { CStr::from_bytes_with_nul_unchecked(b"Hello world!\0") };
         let _ = TESTING_CSTR.as_ptr();
+        const BYTES: &[u8] = TESTING_CSTR.to_bytes_with_nul();
+        assert_eq!(BYTES, b"Hello world!\0");
     }
 }
